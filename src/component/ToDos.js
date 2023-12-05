@@ -24,30 +24,45 @@ const ToDos = (props) => {
   const [dateValue, setStartDate] = useState(null);
   const [time, setTime] = useState("00:00");
   const [toCheckDate, setCheckDate] = useState(false);
-  const [toContact, setToContact] = useState(null);
-  const [trigger, setTrigger] = useState(false);
+  const [toContact, setToContact] = useState("");
   const date = new Date();
   const dateWithoutTime = new Date(date.getTime()).setHours(0, 0, 0, 0);
 
-  useEffect(
-    () => {
-      if (trigger) {
-        const response = postRequest();
-        console.log("first-todo", response);
-        console.log("first-todo", props.todos);
-      }
-    },
-    [props.todos],
-    trigger
-  );
+  let dataSend ={};
+  //let dataGet  =[];
 
-  const postRequest = async () => {
+  const postRequest = async (data) => {
     try {
-      return await axios.post("/contact", props.todos);
+      console.log("props-data 2",props.todos);
+      return await axios.post("https://todo-store-data-mongoose-backend.onrender.com/new_item", data);
     } catch (error) {
       console.error(error.response.data);
     }
   };
+  /*const getTodoItems = async () =>{
+    console.log("coming inside...");
+    try {
+      await axios.get("http://localhost:8080/contact").then((response) => {
+        dataGet = response.data;
+        if(dataGet.length!==0){
+          dataGet.map((item)=>{
+            props.addToDo({
+              id: item.id,
+              item: item.todo,
+              date: item.date,
+              time: item.time,
+              contact: item.contact,
+              completed: item.completed,
+            });
+          })
+        }
+      });
+    } catch (error) {
+      console.error(error.response.data);
+    }
+  }*/
+ 
+ 
   function compareTime(userInput) {
     // Get the hour, minute, and seconds from the user input time.
     const userHours = parseInt(userInput.substring(0, 2));
@@ -58,9 +73,9 @@ const ToDos = (props) => {
     const currentMinutes = new Date().getMinutes();
     const currentSeconds = new Date().getSeconds();
     // Create a Date object for the user input time.
-    const userDate = new Date(0, 0, 0, userHours, userMinutes, userSeconds);
+    const userTime = new Date(0, 0, 0, userHours, userMinutes, userSeconds);
     // Create a Date object for the current time.
-    const currentDate = new Date(
+    const currentTime = new Date(
       0,
       0,
       0,
@@ -69,7 +84,7 @@ const ToDos = (props) => {
       currentSeconds
     );
     // Compare the two Date objects.
-    if (userDate > currentDate) {
+    if (userTime > currentTime) {
       return "future";
     } else {
       return "past";
@@ -121,7 +136,7 @@ const ToDos = (props) => {
     setCheckDate(true);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (toDo === "") {
       toast.error("You may need to add ToDo/Reminder Message");
       return;
@@ -153,21 +168,22 @@ const ToDos = (props) => {
         res = res + result[i];
       }
     }
-    if (toContact === null) setToContact("no-contact available");
-    if (res === "") res = "Daily Snooze ";
-    props.addToDo({
-      id: Math.floor(Math.random() * 1000),
-      item: toDo,
+    if (toContact === "") setToContact("no-contact available");
+    if (res === "") res = "Daily Snooze";
+    dataSend = {
+      id: Math.floor(Math.random() * 100000),
+      todo: toDo,
       date: res,
       time: time,
       contact: toContact,
       completed: false,
-    });
+    }
+    props.addToDo(dataSend);
+    postRequest(dataSend);
     toast.success("ToDo/Reminder added successfully!");
     setToDo("");
     setStartDate(null);
     setToContact("");
-    setTrigger(true);
   };
 
   return (
@@ -222,7 +238,7 @@ const ToDos = (props) => {
             Choose Time :
             <span className="time-picker-parent">
               <TimePicker
-                wrapperClassName="datePicker"
+                className="datePicker"
                 value={time}
                 onChange={onChange}
               />
@@ -242,7 +258,7 @@ const ToDos = (props) => {
           </div>
         </form>
         <div className="add-button-parent">
-          <button onClick={handleSubmit} class="button-arounder">Add</button>
+          <button onClick={handleSubmit} className="button-arounder">Add</button>
         </div>
       </div>
       <ToastContainer position="top-center" autoClose={3000} />

@@ -1,10 +1,15 @@
+import React, { useState } from "react";
 import DisplayToDo from './component/DisplayToDo';
 import  ToDos   from './component/ToDos';
 import { TypeAnimation } from "react-type-animation";
 import { motion } from "framer-motion";
 import './css/main.css';
 
+
+
 function App() {
+  const [loadBool,setLoadBool] = useState(true);
+
   return (
     <div className="App">
        <div className="animation">

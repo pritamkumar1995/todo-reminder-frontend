@@ -1,6 +1,7 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef} from "react";
 import { connect } from "react-redux";
 import { toast } from "react-toastify";
+import axios from "axios";
 import "react-toastify/dist/ReactToastify.css";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
@@ -31,16 +32,28 @@ function ToDosList(props) {
     inputRef.current.disabled = false;
     inputRef.current.focus();
   };
-  const deleteDataId = () => {
+  const deleteDataId = (id) => {
     confirmAlert({
       title: "Confirm to Submit",
       message: "Are you sure You want to Delete This ?",
       buttons: [
         {
           label: "Yes",
-          onClick: () => {
-            props.removeTodo(props.item.id);
-            toast.success("ToDo/Reminder Deleted Successfully !");
+          onClick:  async () => {
+            const data = {id};
+            try {
+              console.log("props.id sent ",id);
+              props.removeTodo(props.item.id);
+              return await axios.delete("https://todo-store-data-mongoose-backend.onrender.com/delete_item", {data}).then((response) => {
+                if(response){
+                  toast.success("ToDo/Reminder Deleted Successfully !");
+                }
+              });
+             
+            } catch (error) {
+              toast.error("Sorry due to some issue ToDo/Reminder is not deleted ");
+              console.error(error.response.data);
+            }
           },
         },
         {
@@ -52,16 +65,30 @@ function ToDosList(props) {
       ],
     });
   };
-  const completeTaskId = (value) => {
-    props.completedTodo(value.id);
-    toast.success("ToDo/Reminder Completed Successfully !");
-  };
-  const update = (id, value, e) => {
+  const completeTaskId = async (dataToSend) => {
+    const data ={};
+    data.id = dataToSend.item.id;
+    data.value = {"completed": true};
+    return await axios.patch("https://todo-store-data-mongoose-backend.onrender.com/update_item", data).then((response) => {
+      if(response){
+        props.completedTodo(dataToSend.item.id);
+        toast.success("ToDo/Reminder Completed Successfully !");
+      }
+    })};
+  const update = async (id, value, e) => {
+    const data ={};
     if (e.which === 13) {
       console.log("updated value ", value);
-      props.updateTodo({ id, item: value });
+      data.id = id;
+      data.value = {"todo":value};
       inputRef.current.disabled = true;
-      toast.success("ToDo/Reminder Updated Successfully !");
+      return await axios.patch("https://todo-store-data-mongoose-backend.onrender.com/update_item", data).then((response) => {
+        if(response){
+          props.updateTodo({ id, todo: value });
+          toast.success("ToDo/Reminder Updated Successfully !");
+        }
+      });
+        
     }
   };
 
@@ -90,7 +117,7 @@ function ToDosList(props) {
               className="text-area-field"
               ref={inputRef}
               disabled={inputRef}
-              defaultValue={props.item.item}
+              defaultValue={props.item.todo}
               onKeyPress={(e) =>
                 update(props.item.id, inputRef.current.value, e)
               }
@@ -115,7 +142,7 @@ function ToDosList(props) {
               whileTap={{ scale: 0.8 }}
               style={{ color: "red" }}
               className="btn-delete"
-              onClick={deleteDataId}
+              onClick={() => deleteDataId(props.item.id)}
             >
               Delete
             </motion.button>
@@ -125,7 +152,7 @@ function ToDosList(props) {
                 whileTap={{ scale: 0.8 }}
                 style={{ color: "green" }}
                 className="btn-complete"
-                onClick={() => completeTaskId(props.item)}
+                onClick={() => completeTaskId(props)}
               >
                 Complete
               </motion.button>

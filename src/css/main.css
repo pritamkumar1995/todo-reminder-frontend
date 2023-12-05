@@ -249,6 +249,15 @@ body{
     color: rgb(48, 43, 43);
     margin-top: 50px;
 }
+.load{
+    display: flex;
+    width: 40px;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
+    margin-bottom: 100px;
+}
 
 .button-arounder {
     background: white;
@@ -299,6 +308,7 @@ body{
     border-bottom-left-radius: var(--radius);
     border-bottom-right-radius: var(--radius);
   }
+  
 
 @media only screen and (max-width: 750px) {
  
